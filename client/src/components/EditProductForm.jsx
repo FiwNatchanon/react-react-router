@@ -1,6 +1,57 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+
 function EditProductForm() {
+  const navigate = useNavigate();
+  const { productId } = useParams();
+  const [product, setProduct] = useState({
+    name: "",
+    image: "",
+    price: "",
+    description: "",
+  });
+
+  useEffect(() => {
+    const getProduct = async () => {
+      try {
+        const results = await axios(
+          `http://localhost:4001/products/${productId}`
+        );
+        const data = results.data.data;
+        setProduct({
+          name: data.name,
+          image: data.image,
+          price: data.price,
+          description: data.description,
+        });
+      } catch (error) {
+        console.error("Failed to fetch product:", error);
+      }
+    };
+
+    getProduct();
+  }, [productId]);
+
+  const handleChange = (e) => {
+    setProduct({ ...product, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`http://localhost:4001/products/${productId}`, {
+        ...product,
+        price: Number(product.price),
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Failed to update product:", error);
+    }
+  };
+
   return (
-    <form className="product-form">
+    <form className="product-form" onSubmit={handleSubmit}>
       <h1>Edit Product Form</h1>
       <div className="input-container">
         <label>
@@ -10,7 +61,8 @@ function EditProductForm() {
             name="name"
             type="text"
             placeholder="Enter name here"
-            onChange={() => {}}
+            value={product.name}
+            onChange={handleChange}
           />
         </label>
       </div>
@@ -22,7 +74,8 @@ function EditProductForm() {
             name="image"
             type="text"
             placeholder="Enter image url here"
-            onChange={() => {}}
+            value={product.image}
+            onChange={handleChange}
           />
         </label>
       </div>
@@ -34,7 +87,8 @@ function EditProductForm() {
             name="price"
             type="number"
             placeholder="Enter price here"
-            onChange={() => {}}
+            value={product.price}
+            onChange={handleChange}
           />
         </label>
       </div>
@@ -44,11 +98,11 @@ function EditProductForm() {
           <textarea
             id="description"
             name="description"
-            type="text"
             placeholder="Enter description here"
-            onChange={() => {}}
             rows={4}
             cols={30}
+            value={product.description}
+            onChange={handleChange}
           />
         </label>
       </div>
